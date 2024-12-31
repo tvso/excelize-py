@@ -9,755 +9,745 @@ provided streaming API for generating or reading data from a worksheet with huge
 amounts of data. This library needs Python version 3.9 or later.
 """
 
-from ctypes import (
-    c_bool,
-    c_char_p,
-    c_char,
-    c_double,
-    c_int,
-    c_long,
-    c_ubyte,
-    c_uint,
-    Structure,
-    POINTER,
-)
-
-
-class _Interface(Structure):
-    _fields_ = [
-        ("Type", c_int),
-        ("Integer", c_int),
-        ("String", c_char_p),
-        ("Float64", c_double),
-        ("Boolean", c_bool),
-    ]
-
-
-class _Options(Structure):
-    _fields_ = [
-        ("MaxCalcIterations", c_uint),
-        ("Password", c_char_p),
-        ("RawCellValue", c_bool),
-        ("UnzipSizeLimit", c_long),
-        ("UnzipXMLSizeLimit", c_long),
-        ("ShortDatePattern", c_char_p),
-        ("LongDatePattern", c_char_p),
-        ("LongTimePattern", c_char_p),
-        ("CultureInfo", c_uint),
-    ]
-
-
-class _AppProperties(Structure):
-    _fields_ = [
-        ("Application", c_char_p),
-        ("ScaleCrop", c_bool),
-        ("DocSecurity", c_int),
-        ("Company", c_char_p),
-        ("LinksUpToDate", c_bool),
-        ("HyperlinksChanged", c_bool),
-        ("AppVersion", c_char_p),
-    ]
-
-
-class _Border(Structure):
-    _fields_ = [
-        ("Type", c_char_p),
-        ("Color", c_char_p),
-        ("Style", c_int),
-    ]
-
-
-class _Fill(Structure):
-    _fields_ = [
-        ("Type", c_char_p),
-        ("Pattern", c_int),
-        ("ColorLen", c_int),
-        ("Color", POINTER(POINTER(c_char))),
-        ("Shading", c_int),
-    ]
-
-
-class _Font(Structure):
-    _fields_ = [
-        ("Bold", c_bool),
-        ("Italic", c_bool),
-        ("Underline", c_char_p),
-        ("Family", c_char_p),
-        ("Size", c_double),
-        ("Strike", c_bool),
-        ("Color", c_char_p),
-        ("ColorIndexed", c_int),
-        ("ColorTheme", POINTER(c_int)),
-        ("ColorTint", c_double),
-        ("VertAlign", c_char_p),
-    ]
-
-
-class _Alignment(Structure):
-    _fields_ = [
-        ("Horizontal", c_char_p),
-        ("Indent", c_int),
-        ("JustifyLastLine", c_bool),
-        ("ReadingOrder", c_uint),
-        ("RelativeIndent", c_int),
-        ("ShrinkToFit", c_bool),
-        ("TextRotation", c_int),
-        ("Vertical", c_char_p),
-        ("WrapText", c_bool),
-    ]
-
-
-class _Protection(Structure):
-    _fields_ = [
-        ("Hidden", c_bool),
-        ("Locked", c_bool),
-    ]
-
-
-class _AutoFilterOptions(Structure):
-    _fields_ = [
-        ("Column", c_char_p),
-        ("Expression", c_char_p),
-    ]
-
-
-class _FormulaOpts(Structure):
-    _fields_ = [
-        ("Type", POINTER(c_char_p)),
-        ("Ref", POINTER(c_char_p)),
-    ]
-
-
-class _HeaderFooterOptions(Structure):
-    _fields_ = [
-        ("AlignWithMargins", POINTER(c_bool)),
-        ("DifferentFirst", c_bool),
-        ("DifferentOddEven", c_bool),
-        ("ScaleWithDoc", POINTER(c_bool)),
-        ("OddHeader", c_char_p),
-        ("OddFooter", c_char_p),
-        ("EvenHeader", c_char_p),
-        ("EvenFooter", c_char_p),
-        ("FirstHeader", c_char_p),
-        ("FirstFooter", c_char_p),
-    ]
-
-
-class _HyperlinkOpts(Structure):
-    _fields_ = [
-        ("Display", POINTER(c_char_p)),
-        ("Tooltip", POINTER(c_char_p)),
-    ]
-
-
-class _Style(Structure):
-    _fields_ = [
-        ("BorderLen", c_int),
-        ("Border", POINTER(_Border)),
-        ("Fill", _Fill),
-        ("Font", POINTER(_Font)),
-        ("Alignment", POINTER(_Alignment)),
-        ("Protection", POINTER(_Protection)),
-        ("NumFmt", c_int),
-        ("DecimalPlaces", POINTER(c_int)),
-        ("CustomNumFmt", POINTER(c_char_p)),
-        ("NegRed", c_bool),
-    ]
-
-
-class _GraphicOptions(Structure):
-    _fields_ = [
-        ("AltText", c_char_p),
-        ("PrintObject", POINTER(c_bool)),
-        ("Locked", POINTER(c_bool)),
-        ("LockAspectRatio", c_bool),
-        ("AutoFit", c_bool),
-        ("AutoFitIgnoreAspect", c_bool),
-        ("OffsetX", c_int),
-        ("OffsetY", c_int),
-        ("ScaleX", c_double),
-        ("ScaleY", c_double),
-        ("Hyperlink", c_char_p),
-        ("HyperlinkType", c_char_p),
-        ("Positioning", c_char_p),
-    ]
-
-
-class _PageLayoutMarginsOptions(Structure):
-    _fields_ = [
-        ("Bottom", POINTER(c_double)),
-        ("Footer", POINTER(c_double)),
-        ("Header", POINTER(c_double)),
-        ("Left", POINTER(c_double)),
-        ("Right", POINTER(c_double)),
-        ("Top", POINTER(c_double)),
-        ("Horizontally", POINTER(c_bool)),
-        ("Vertically", POINTER(c_bool)),
-    ]
-
-
-class _PageLayoutOptions(Structure):
-    _fields_ = [
-        ("Size", POINTER(c_int)),
-        ("Orientation", POINTER(c_char_p)),
-        ("FirstPageNumber", POINTER(c_uint)),
-        ("AdjustTo", POINTER(c_uint)),
-        ("FitToHeight", POINTER(c_int)),
-        ("FitToWidth", POINTER(c_int)),
-        ("BlackAndWhite", POINTER(c_bool)),
-        ("PageOrder", POINTER(c_char_p)),
-    ]
-
-
-class _Picture(Structure):
-    _fields_ = [
-        ("Extension", c_char_p),
-        ("FileLen", c_int),
-        ("File", POINTER(c_ubyte)),
-        ("Format", POINTER(_GraphicOptions)),
-        ("InsertType", c_uint),
-    ]
-
-
-class _Selection(Structure):
-    _fields_ = [
-        ("SQRef", c_char_p),
-        ("ActiveCell", c_char_p),
-        ("Pane", c_char_p),
-    ]
-
-
-class _Panes(Structure):
-    _fields_ = [
-        ("Freeze", c_bool),
-        ("Split", c_bool),
-        ("XSplit", c_int),
-        ("YSplit", c_int),
-        ("TopLeftCell", c_char_p),
-        ("ActivePane", c_char_p),
-        ("SelectionLen", c_int),
-        ("Selection", POINTER(_Selection)),
-    ]
-
-
-class _RichTextRun(Structure):
-    _fields_ = [
-        ("Font", POINTER(_Font)),
-        ("Text", c_char_p),
-    ]
-
-
-class _Comment(Structure):
-    _fields_ = [
-        ("Author", c_char_p),
-        ("AuthorID", c_int),
-        ("Cell", c_char_p),
-        ("Text", c_char_p),
-        ("Width", c_uint),
-        ("Height", c_uint),
-        ("ParagraphLen", c_int),
-        ("Paragraph", POINTER(_RichTextRun)),
-    ]
-
-
-class _ConditionalFormatOptions(Structure):
-    _fields_ = [
-        ("Type", c_char_p),
-        ("AboveAverage", c_bool),
-        ("Percent", c_bool),
-        ("Format", POINTER(c_int)),
-        ("Criteria", c_char_p),
-        ("Value", c_char_p),
-        ("MinType", c_char_p),
-        ("MidType", c_char_p),
-        ("MaxType", c_char_p),
-        ("MinValue", c_char_p),
-        ("MidValue", c_char_p),
-        ("MaxValue", c_char_p),
-        ("MinColor", c_char_p),
-        ("MidColor", c_char_p),
-        ("MaxColor", c_char_p),
-        ("BarColor", c_char_p),
-        ("BarBorderColor", c_char_p),
-        ("BarDirection", c_char_p),
-        ("BarOnly", c_bool),
-        ("BarSolid", c_bool),
-        ("IconStyle", c_char_p),
-        ("ReverseIcons", c_bool),
-        ("IconsOnly", c_bool),
-        ("StopIfTrue", c_bool),
-    ]
-
-
-class _FormControl(Structure):
-    _fields_ = [
-        ("Cell", c_char_p),
-        ("Macro", c_char_p),
-        ("Width", c_uint),
-        ("Height", c_uint),
-        ("Checked", c_bool),
-        ("CurrentVal", c_uint),
-        ("MinVal", c_uint),
-        ("MaxVal", c_uint),
-        ("IncChange", c_uint),
-        ("PageChange", c_uint),
-        ("Horizontally", c_bool),
-        ("CellLink", c_char_p),
-        ("Text", c_char_p),
-        ("ParagraphLen", c_int),
-        ("Paragraph", POINTER(_RichTextRun)),
-        ("Type", c_uint),
-        ("Format", _GraphicOptions),
-    ]
-
-
-class _ChartNumFmt(Structure):
-    _fields_ = [
-        ("CustomNumFmt", c_char_p),
-        ("SourceLinked", c_bool),
-    ]
-
-
-class _ChartAxis(Structure):
-    _fields_ = [
-        ("None", c_bool),
-        ("MajorGridLines", c_bool),
-        ("MinorGridLines", c_bool),
-        ("MajorUnit", c_double),
-        ("TickLabelPosition", c_uint),
-        ("TickLabelSkip", c_int),
-        ("ReverseOrder", c_bool),
-        ("Secondary", c_bool),
-        ("Maximum", POINTER(c_double)),
-        ("Minimum", POINTER(c_double)),
-        ("Alignment", _Alignment),
-        ("Font", _Font),
-        ("LogBase", c_double),
-        ("NumFmt", _ChartNumFmt),
-        ("TitleLen", c_int),
-        ("Title", POINTER(_RichTextRun)),
-    ]
-
-
-class _ChartDataLabel(Structure):
-    _fields_ = [
-        ("Alignment", _Alignment),
-        ("Font", _Font),
-        ("Fill", _Fill),
-    ]
-
-
-class _ChartDimension(Structure):
-    _fields_ = [
-        ("Width", c_uint),
-        ("Height", c_uint),
-    ]
-
-
-class _ChartPlotArea(Structure):
-    _fields_ = [
-        ("SecondPlotValues", c_int),
-        ("ShowBubbleSize", c_bool),
-        ("ShowCatName", c_bool),
-        ("ShowLeaderLines", c_bool),
-        ("ShowPercent", c_bool),
-        ("ShowSerName", c_bool),
-        ("ShowVal", c_bool),
-        ("Fill", _Fill),
-        ("NumFmt", _ChartNumFmt),
-    ]
-
-
-class _ChartLegend(Structure):
-    _fields_ = [
-        ("Position", c_char_p),
-        ("ShowLegendKey", c_bool),
-    ]
-
-
-class _ChartMarker(Structure):
-    _fields_ = [
-        ("Fill", _Fill),
-        ("Symbol", c_char_p),
-        ("Size", c_int),
-    ]
-
-
-class _ChartLine(Structure):
-    _fields_ = [
-        ("Type", c_uint),
-        ("Smooth", c_bool),
-        ("Width", c_double),
-    ]
-
-
-class _ChartSeries(Structure):
-    _fields_ = [
-        ("Name", c_char_p),
-        ("Categories", c_char_p),
-        ("Values", c_char_p),
-        ("Sizes", c_char_p),
-        ("Fill", _Fill),
-        ("Line", _ChartLine),
-        ("Marker", _ChartMarker),
-        ("DataLabel", _ChartDataLabel),
-        ("DataLabelPosition", c_uint),
-    ]
-
-
-class _Chart(Structure):
-    _fields_ = [
-        ("Type", c_uint),
-        ("SeriesLen", c_int),
-        ("Series", POINTER(_ChartSeries)),
-        ("Format", _GraphicOptions),
-        ("Dimension", _ChartDimension),
-        ("Legend", _ChartLegend),
-        ("TitleLen", c_int),
-        ("Title", POINTER(_RichTextRun)),
-        ("VaryColors", POINTER(c_bool)),
-        ("XAxis", _ChartAxis),
-        ("YAxis", _ChartAxis),
-        ("PlotArea", _ChartPlotArea),
-        ("Fill", _Fill),
-        ("Border", _ChartLine),
-        ("ShowBlanksAs", c_char_p),
-        ("BubbleSize", c_int),
-        ("HoleSize", c_int),
-        ("GapWidth", POINTER(c_uint)),
-        ("Overlap", POINTER(c_int)),
-    ]
-
-
-class _PivotTableField(Structure):
-    _fields_ = [
-        ("Compact", c_bool),
-        ("Data", c_char_p),
-        ("Name", c_char_p),
-        ("Outline", c_bool),
-        ("ShowAll", c_bool),
-        ("InsertBlankRow", c_bool),
-        ("Subtotal", c_char_p),
-        ("DefaultSubtotal", c_bool),
-        ("NumFmt", c_int),
-    ]
-
-
-class _PivotTableOptions(Structure):
-    _fields_ = [
-        ("DataRange", c_char_p),
-        ("PivotTableRange", c_char_p),
-        ("Name", c_char_p),
-        ("RowsLen", c_int),
-        ("Rows", POINTER(_PivotTableField)),
-        ("ColumnsLen", c_int),
-        ("Columns", POINTER(_PivotTableField)),
-        ("DataLen", c_int),
-        ("Data", POINTER(_PivotTableField)),
-        ("FilterLen", c_int),
-        ("Filter", POINTER(_PivotTableField)),
-        ("RowGrandTotals", c_bool),
-        ("ColGrandTotals", c_bool),
-        ("ShowDrill", c_bool),
-        ("UseAutoFormatting", c_bool),
-        ("PageOverThenDown", c_bool),
-        ("MergeItem", c_bool),
-        ("ClassicLayout", c_bool),
-        ("CompactData", c_bool),
-        ("ShowError", c_bool),
-        ("ShowRowHeaders", c_bool),
-        ("ShowColHeaders", c_bool),
-        ("ShowRowStripes", c_bool),
-        ("ShowColStripes", c_bool),
-        ("ShowLastColumn", c_bool),
-        ("FieldPrintTitles", c_bool),
-        ("ItemPrintTitles", c_bool),
-        ("PivotTableStyleName", c_char_p),
-    ]
-
-
-class _ShapeLine(Structure):
-    _fields_ = [
-        ("Color", c_char_p),
-        ("Width", POINTER(c_double)),
-    ]
-
-
-class _Shape(Structure):
-    _fields_ = [
-        ("Cell", c_char_p),
-        ("Type", c_char_p),
-        ("Macro", c_char_p),
-        ("Width", c_uint),
-        ("Height", c_uint),
-        ("Format", _GraphicOptions),
-        ("Fill", _Fill),
-        ("Line", _ShapeLine),
-        ("ParagraphLen", c_int),
-        ("Paragraph", POINTER(_RichTextRun)),
-    ]
-
-
-class _SheetPropsOptions(Structure):
-    _fields_ = [
-        ("CodeName", POINTER(c_char_p)),
-        ("EnableFormatConditionsCalculation", POINTER(c_bool)),
-        ("Published", POINTER(c_bool)),
-        ("AutoPageBreaks", POINTER(c_bool)),
-        ("FitToPage", POINTER(c_bool)),
-        ("TabColorIndexed", POINTER(c_int)),
-        ("TabColorRGB", POINTER(c_char_p)),
-        ("TabColorTheme", POINTER(c_int)),
-        ("TabColorTint", POINTER(c_double)),
-        ("OutlineSummaryBelow", POINTER(c_bool)),
-        ("OutlineSummaryRight", POINTER(c_bool)),
-        ("BaseColWidth", POINTER(c_uint)),
-        ("DefaultColWidth", POINTER(c_double)),
-        ("DefaultRowHeight", POINTER(c_double)),
-        ("CustomHeight", POINTER(c_bool)),
-        ("ZeroHeight", POINTER(c_bool)),
-        ("ThickTop", POINTER(c_bool)),
-        ("ThickBottom", POINTER(c_bool)),
-    ]
-
-
-class _SheetProtectionOptions(Structure):
-    _fields_ = [
-        ("AlgorithmName", c_char_p),
-        ("AutoFilter", c_bool),
-        ("DeleteColumns", c_bool),
-        ("DeleteRows", c_bool),
-        ("EditObjects", c_bool),
-        ("EditScenarios", c_bool),
-        ("FormatCells", c_bool),
-        ("FormatColumns", c_bool),
-        ("FormatRows", c_bool),
-        ("InsertColumns", c_bool),
-        ("InsertHyperlinks", c_bool),
-        ("InsertRows", c_bool),
-        ("Password", c_char_p),
-        ("PivotTables", c_bool),
-        ("SelectLockedCells", c_bool),
-        ("SelectUnlockedCells", c_bool),
-        ("Sort", c_bool),
-    ]
-
-
-class _SlicerOptions(Structure):
-    _fields_ = [
-        ("Name", c_char_p),
-        ("Cell", c_char_p),
-        ("TableSheet", c_char_p),
-        ("TableName", c_char_p),
-        ("Caption", c_char_p),
-        ("Macro", c_char_p),
-        ("Width", c_uint),
-        ("Height", c_uint),
-        ("DisplayHeader", POINTER(c_bool)),
-        ("ItemDesc", c_bool),
-        ("Format", _GraphicOptions),
-    ]
-
-
-class _SparklineOptions(Structure):
-    _fields_ = [
-        ("LocationLen", c_int),
-        ("Location", POINTER(POINTER(c_char))),
-        ("RangeLen", c_int),
-        ("Range", POINTER(POINTER(c_char))),
-        ("Max", c_int),
-        ("CustMax", c_int),
-        ("Min", c_int),
-        ("CustMin", c_int),
-        ("Type", c_char_p),
-        ("Weight", c_double),
-        ("DateAxis", c_bool),
-        ("Markers", c_bool),
-        ("High", c_bool),
-        ("Low", c_bool),
-        ("First", c_bool),
-        ("Last", c_bool),
-        ("Negative", c_bool),
-        ("Axis", c_bool),
-        ("Hidden", c_bool),
-        ("Reverse", c_bool),
-        ("Style", c_int),
-        ("SeriesColor", c_char_p),
-        ("NegativeColor", c_char_p),
-        ("MarkersColor", c_char_p),
-        ("FirstColor", c_char_p),
-        ("LastColor", c_char_p),
-        ("HightColor", c_char_p),
-        ("LowColor", c_char_p),
-        ("EmptyCells", c_char_p),
-    ]
-
-
-class _Table(Structure):
-    _fields_ = [
-        ("Range", c_char_p),
-        ("Name", c_char_p),
-        ("StyleName", c_char_p),
-        ("ShowColumnStripes", c_bool),
-        ("ShowFirstColumn", c_bool),
-        ("ShowHeaderRow", POINTER(c_bool)),
-        ("ShowLastColumn", c_bool),
-        ("ShowRowStripes", POINTER(c_bool)),
-    ]
-
-
-class _ViewOptions(Structure):
-    _fields_ = [
-        ("DefaultGridColor", POINTER(c_bool)),
-        ("RightToLeft", POINTER(c_bool)),
-        ("ShowFormulas", POINTER(c_bool)),
-        ("ShowGridLines", POINTER(c_bool)),
-        ("ShowRowColHeaders", POINTER(c_bool)),
-        ("ShowRuler", POINTER(c_bool)),
-        ("ShowZeros", POINTER(c_bool)),
-        ("TopLeftCell", POINTER(c_char_p)),
-        ("View", POINTER(c_char_p)),
-        ("ZoomScale", POINTER(c_double)),
-    ]
-
-
-class _DefinedName(Structure):
-    _fields_ = [
-        ("Name", c_char_p),
-        ("Comment", c_char_p),
-        ("RefersTo", c_char_p),
-        ("Scope", c_char_p),
-    ]
-
-
-class _WorkbookPropsOptions(Structure):
-    _fields_ = [
-        ("Date1904", POINTER(c_bool)),
-        ("FilterPrivacy", POINTER(c_bool)),
-        ("CodeName", POINTER(c_char_p)),
-    ]
-
-
-class _WorkbookProtectionOptions(Structure):
-    _fields_ = [
-        ("AlgorithmName", c_char_p),
-        ("Password", c_char_p),
-        ("LockStructure", c_bool),
-        ("LockWindows", c_bool),
-    ]
-
-
-class _CalcCellValueResult(Structure):
-    _fields_ = [
-        ("val", c_char_p),
-        ("err", c_char_p),
-    ]
-
-
-class _CellNameToCoordinatesResult(Structure):
-    _fields_ = [
-        ("col", c_int),
-        ("row", c_int),
-        ("err", c_char_p),
-    ]
-
-
-class _ColumnNameToNumberResult(Structure):
-    _fields_ = [
-        ("col", c_int),
-        ("err", c_char_p),
-    ]
-
-
-class _ColumnNumberToNameResult(Structure):
-    _fields_ = [
-        ("col", c_char_p),
-        ("err", c_char_p),
-    ]
-
-
-class _CoordinatesToCellNameResult(Structure):
-    _fields_ = [
-        ("cell", c_char_p),
-        ("err", c_char_p),
-    ]
-
-
-class _GetAppPropsResult(Structure):
-    _fields_ = [
-        ("opts", _AppProperties),
-        ("err", c_char_p),
-    ]
-
-
-class _GetCellFormulaResult(Structure):
-    _fields_ = [
-        ("val", c_char_p),
-        ("err", c_char_p),
-    ]
-
-
-class _GetCellHyperLinkResult(Structure):
-    _fields_ = [
-        ("link", c_bool),
-        ("target", c_char_p),
-        ("err", c_char_p),
-    ]
-
-
-class _GetCellValueResult(Structure):
-    _fields_ = [
-        ("val", c_char_p),
-        ("err", c_char_p),
-    ]
-
-
-class _Row(Structure):
-    _fields_ = [
-        ("CellLen", c_int),
-        ("Cell", POINTER(POINTER(c_char))),
-    ]
-
-
-class _GetRowsResult(Structure):
-    _fields_ = [
-        ("RowLen", c_int),
-        ("Row", POINTER(_Row)),
-        ("err", c_char_p),
-    ]
-
-
-class _NewSheetResult(Structure):
-    _fields_ = [
-        ("idx", c_int),
-        ("err", c_char_p),
-    ]
-
-
-class _NewStyleResult(Structure):
-    _fields_ = [
-        ("style", c_int),
-        ("err", c_char_p),
-    ]
-
-
-class _GetStyleResult(Structure):
-    _fields_ = [
-        ("style", _Style),
-        ("err", c_char_p),
-    ]
-
-
-class _GetTablesResult(Structure):
-    _fields_ = [
-        ("TablesLen", c_int),
-        ("Tables", POINTER(_Table)),
-        ("Err", c_char_p),
-    ]
-
-
-class _OptionsResult(Structure):
-    _fields_ = [
-        ("idx", c_int),
-        ("err", c_char_p),
-    ]
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import List, Optional
+
+
+class CultureName(IntEnum):
+    """
+    This section defines the currently supported country code types enumeration
+    for apply number format.
+    """
+
+    CultureNameUnknown = 0
+    CultureNameEnUS = 1
+    CultureNameJaJP = 2
+    CultureNameKoKR = 3
+    CultureNameZhCN = 4
+    CultureNameZhTW = 5
+
+
+class CellType(IntEnum):
+    """
+    This section defines the cell value types enumeration.
+    """
+
+    CellTypeUnset = 0
+    CellTypeBool = 1
+    CellTypeDate = 2
+    CellTypeError = 3
+    CellTypeFormula = 4
+    CellTypeInlineString = 5
+    CellTypeNumber = 6
+    CellTypeSharedString = 7
+
+
+class FormControlType(IntEnum):
+    """
+    FormControlType is the type of supported form controls.
+    """
+
+    FormControlNote = 0
+    FormControlButton = 1
+    FormControlOptionButton = 2
+    FormControlSpinButton = 3
+    FormControlCheckBox = 4
+    FormControlGroupBox = 5
+    FormControlLabel = 6
+    FormControlScrollBar = 7
+
+
+class ChartLineType(IntEnum):
+    """
+    ChartLineType defines the currently supported chart line types enumeration.
+    """
+
+    ChartLineUnset = 0
+    ChartLineSolid = 1
+    ChartLineNone = 2
+    ChartLineAutomatic = 3
+
+
+class ChartType(IntEnum):
+    """
+    ChartType defines the currently supported chart types enumeration.
+    """
+
+    Area = 0
+    AreaStacked = 1
+    AreaPercentStacked = 2
+    Area3D = 3
+    Area3DStacked = 4
+    Area3DPercentStacked = 5
+    Bar = 6
+    BarStacked = 7
+    BarPercentStacked = 8
+    Bar3DClustered = 9
+    Bar3DStacked = 10
+    Bar3DPercentStacked = 11
+    Bar3DConeClustered = 12
+    Bar3DConeStacked = 13
+    Bar3DConePercentStacked = 14
+    Bar3DPyramidClustered = 15
+    Bar3DPyramidStacked = 16
+    Bar3DPyramidPercentStacked = 17
+    Bar3DCylinderClustered = 18
+    Bar3DCylinderStacked = 19
+    Bar3DCylinderPercentStacked = 20
+    Col = 21
+    ColStacked = 22
+    ColPercentStacked = 23
+    Col3D = 24
+    Col3DClustered = 25
+    Col3DStacked = 26
+    Col3DPercentStacked = 27
+    Col3DCone = 28
+    Col3DConeClustered = 29
+    Col3DConeStacked = 30
+    Col3DConePercentStacked = 31
+    Col3DPyramid = 32
+    Col3DPyramidClustered = 33
+    Col3DPyramidStacked = 34
+    Col3DPyramidPercentStacked = 35
+    Col3DCylinder = 36
+    Col3DCylinderClustered = 37
+    Col3DCylinderStacked = 38
+    Col3DCylinderPercentStacked = 39
+    Doughnut = 40
+    Line = 41
+    Line3D = 42
+    Pie = 43
+    Pie3D = 44
+    PieOfPie = 45
+    BarOfPie = 46
+    Radar = 47
+    Scatter = 48
+    Surface3D = 49
+    WireframeSurface3D = 50
+    Contour = 51
+    WireframeContour = 52
+    Bubble = 53
+    Bubble3D = 54
+
+
+class ChartDataLabelPositionType(IntEnum):
+    """
+    ChartDataLabelPositionType is the type of chart data labels position.
+    """
+
+    ChartDataLabelsPositionUnset = 0
+    ChartDataLabelsPositionBestFit = 1
+    ChartDataLabelsPositionBelow = 2
+    ChartDataLabelsPositionCenter = 3
+    ChartDataLabelsPositionInsideBase = 4
+    ChartDataLabelsPositionInsideEnd = 5
+    ChartDataLabelsPositionLeft = 6
+    ChartDataLabelsPositionOutsideEnd = 7
+    ChartDataLabelsPositionRight = 8
+    ChartDataLabelsPositionAbove = 9
+
+
+class ChartTickLabelPositionType(IntEnum):
+    """
+    ChartTickLabelPositionType is the type of supported chart tick label
+    """
+
+    ChartTickLabelNextToAxis = 0
+    ChartTickLabelHigh = 1
+    ChartTickLabelLow = 2
+    ChartTickLabelNone = 3
+
+
+class PictureInsertType(IntEnum):
+    """
+    PictureInsertType defines the type of the picture has been inserted into the
+    worksheet.
+    """
+
+    PictureInsertTypePlaceOverCells = 0
+    PictureInsertTypePlaceInCell = 1
+    PictureInsertTypeIMAGE = 2
+    PictureInsertTypeDISPIMG = 3
+
+
+@dataclass
+class Interface:
+    type: int = 0
+    integer: int = 0
+    string: str = ""
+    float64: float = 0
+    boolean: bool = False
+
+
+@dataclass
+class Options:
+    max_calc_iterations: int = 0
+    password: str = ""
+    raw_cell_value: bool = False
+    unzip_size_limit: int = 0
+    unzip_xml_size_limit: int = 0
+    short_date_pattern: str = ""
+    long_date_pattern: str = ""
+    long_time_pattern: str = ""
+    culture_info: CultureName = CultureName.CultureNameUnknown
+
+
+@dataclass
+class AppProperties:
+    application: str = ""
+    scale_crop: bool = False
+    doc_security: int = 0
+    company: str = ""
+    links_up_to_date: bool = False
+    hyperlinks_changed: bool = False
+    app_version: str = ""
+
+
+@dataclass
+class Border:
+    type: str = ""
+    color: str = ""
+    style: int = 0
+
+
+@dataclass
+class Fill:
+    type: str = ""
+    pattern: int = 0
+    color: Optional[List[str]] = None
+    shading: int = 0
+
+
+@dataclass
+class Font:
+    bold: bool = False
+    italic: bool = False
+    underline: str = ""
+    family: str = ""
+    size: float = 0
+    strike: bool = False
+    color: str = ""
+    color_indexed: int = 0
+    color_theme: Optional[int] = None
+    color_tint: float = 0
+    vert_align: str = ""
+
+
+@dataclass
+class Alignment:
+    horizontal: str = ""
+    indent: int = 0
+    justify_last_line: bool = False
+    reading_order: int = 0
+    relative_indent: int = 0
+    shrink_to_fit: bool = False
+    text_rotation: int = 0
+    vertical: str = ""
+    wrap_text: bool = False
+
+
+@dataclass
+class Protection:
+    hidden: bool = False
+    locked: bool = False
+
+
+@dataclass
+class AutoFilterOptions:
+    column: str = ""
+    expression: str = ""
+
+
+@dataclass
+class FormulaOpts:
+    type: Optional[str] = None
+    ref: Optional[str] = None
+
+
+@dataclass
+class HeaderFooterOptions:
+    align_with_margins: Optional[bool] = None
+    different_first: bool = False
+    different_odd_even: bool = False
+    scale_with_doc: Optional[bool] = None
+    odd_header: str = ""
+    odd_footer: str = ""
+    even_header: str = ""
+    even_footer: str = ""
+    first_header: str = ""
+    first_footer: str = ""
+
+
+@dataclass
+class HyperlinkOpts:
+    display: Optional[str] = None
+    tooltip: Optional[str] = None
+
+
+@dataclass
+class Style:
+    border: Optional[List[Border]] = None
+    fill: Fill = Fill
+    font: Optional[Font] = None
+    alignment: Optional[Alignment] = None
+    protection: Optional[Protection] = None
+    num_fmt: int = 0
+    decimal_places: Optional[int] = None
+    custom_num_fmt: Optional[str] = None
+    neg_red: bool = False
+
+
+@dataclass
+class Row:
+    cell: Optional[List[str]] = None
+
+
+@dataclass
+class GetRowsResult:
+    row: Optional[List[Row]] = None
+
+
+@dataclass
+class GraphicOptions:
+    alt_text: str = ""
+    print_object: Optional[bool] = None
+    locked: Optional[bool] = None
+    lock_aspect_ratio: bool = False
+    auto_fit: bool = False
+    auto_fit_ignore_aspect: bool = False
+    offset_x: int = 0
+    offset_y: int = 0
+    scale_x: float = 0
+    scale_y: float = 0
+    hyperlink: str = ""
+    hyperlink_type: str = ""
+    positioning: str = ""
+
+
+@dataclass
+class PageLayoutMarginsOptions:
+    bottom: Optional[float] = (None,)
+    footer: Optional[float] = (None,)
+    header: Optional[float] = (None,)
+    left: Optional[float] = (None,)
+    right: Optional[float] = (None,)
+    top: Optional[float] = (None,)
+    horizontally: Optional[bool] = (None,)
+    vertically: Optional[bool] = (None,)
+
+
+@dataclass
+class PageLayoutOptions:
+    size: Optional[int] = (None,)
+    orientation: Optional[str] = (None,)
+    first_page_number: Optional[int] = (None,)
+    adjust_to: Optional[int] = (None,)
+    fit_to_height: Optional[int] = (None,)
+    fit_to_width: Optional[int] = (None,)
+    black_and_white: Optional[bool] = (None,)
+    page_order: Optional[str] = (None,)
+
+
+@dataclass
+class Picture:
+    extension: str = ""
+    file: Optional[bytes] = None
+    format: Optional[GraphicOptions] = None
+    insert_type: PictureInsertType = PictureInsertType.PictureInsertTypePlaceOverCells
+
+
+@dataclass
+class Selection:
+    sq_ref: str = ""
+    active_cell: str = ""
+    pane: str = ""
+
+
+@dataclass
+class Panes:
+    freeze: bool = False
+    split: bool = False
+    x_split: int = 0
+    y_split: int = 0
+    top_left_cell: str = ""
+    active_pane: str = ""
+    selection: Optional[List[Selection]] = None
+
+
+@dataclass
+class RichTextRun:
+    font: Optional[Font] = None
+    text: str = ""
+
+
+@dataclass
+class Comment:
+    author: str = ""
+    author_id: int = 0
+    cell: str = ""
+    text: str = ""
+    width: int = 0
+    height: int = 0
+    paragraph: Optional[List[RichTextRun]] = None
+
+
+@dataclass
+class ConditionalFormatOptions:
+    type: str = ""
+    above_average: bool = False
+    percent: bool = False
+    format: Optional[int] = None
+    criteria: str = ""
+    value: str = ""
+    min_type: str = ""
+    mid_type: str = ""
+    max_type: str = ""
+    min_value: str = ""
+    mid_value: str = ""
+    max_value: str = ""
+    min_color: str = ""
+    mid_color: str = ""
+    max_color: str = ""
+    bar_color: str = ""
+    bar_border_color: str = ""
+    bar_direction: str = ""
+    bar_only: bool = False
+    bar_solid: bool = False
+    icon_style: str = ""
+    reverse_icons: bool = False
+    icons_only: bool = False
+    stop_if_true: bool = False
+
+
+@dataclass
+class FormControl:
+    cell: str = ""
+    macro: str = ""
+    width: int = 0
+    height: int = 0
+    checked: bool = False
+    current_val: int = 0
+    min_val: int = 0
+    max_val: int = 0
+    inc_change: int = 0
+    page_change: int = 0
+    horizontally: bool = False
+    cell_link: str = ""
+    text: str = ""
+    paragraph: Optional[List[RichTextRun]] = None
+    type: FormControlType = FormControlType.FormControlNote
+    format: GraphicOptions = GraphicOptions
+
+
+@dataclass
+class ChartNumFmt:
+    custom_num_fmt: str = ""
+    source_linked: bool = False
+
+
+@dataclass
+class ChartAxis:
+    none: bool = False
+    major_grid_lines: bool = False
+    minor_grid_lines: bool = False
+    major_unit: float = 0
+    tick_label_position: ChartDataLabelPositionType = (
+        ChartDataLabelPositionType.ChartDataLabelsPositionUnset
+    )
+    tick_label_skip: int = 0
+    reverse_order: bool = False
+    secondary: bool = False
+    maximum: Optional[float] = None
+    minimum: Optional[float] = None
+    alignment: Alignment = Alignment
+    font: Font = Font
+    log_base: float = 0
+    num_fmt: ChartNumFmt = ChartNumFmt
+    title: Optional[RichTextRun] = None
+
+
+@dataclass
+class ChartDataLabel:
+    alignment: Alignment = Alignment
+    font: Font = Font
+    fill: Fill = Fill
+
+
+@dataclass
+class ChartDimension:
+    width: int = 0
+    height: int = 0
+
+
+@dataclass
+class ChartPlotArea:
+    second_plot_values: int = 0
+    show_bubble_size: bool = False
+    show_cat_name: bool = False
+    show_leader_lines: bool = False
+    show_percent: bool = False
+    show_ser_name: bool = False
+    show_val: bool = False
+    fill: Fill = Fill
+    num_fmt: ChartNumFmt = ChartNumFmt
+
+
+@dataclass
+class ChartLegend:
+    position: str = ""
+    show_legend_key: bool = False
+
+
+@dataclass
+class ChartMarker:
+    fill: Fill = Fill
+    symbol: str = ""
+    size: int = 0
+
+
+@dataclass
+class ChartLine:
+    type: ChartLineType = ChartLineType.ChartLineUnset
+    smooth: bool = False
+    width: float = 0
+
+
+@dataclass
+class ChartSeries:
+    name: str = ""
+    categories: str = ""
+    values: str = ""
+    sizes: str = ""
+    fill: Fill = Fill
+    line: ChartLine = ChartLine
+    marker: ChartMarker = ChartMarker
+    data_label: ChartDataLabel = ChartDataLabel
+    data_label_position: ChartDataLabelPositionType = (
+        ChartDataLabelPositionType.ChartDataLabelsPositionUnset
+    )
+
+
+@dataclass
+class Chart:
+    type: ChartType = ChartType.Area
+    series: Optional[List[ChartSeries]] = None
+    format: GraphicOptions = GraphicOptions
+    dimension: ChartDimension = ChartDimension
+    legend: ChartLegend = ChartLegend
+    title: Optional[List[RichTextRun]] = None
+    vary_colors: Optional[bool] = None
+    x_axis: ChartAxis = ChartAxis
+    y_axis: ChartAxis = ChartAxis
+    plot_area: ChartPlotArea = ChartPlotArea
+    fill: Fill = Fill
+    border: ChartLine = ChartLine
+    show_blanks_as: str = ""
+    bubble_size: int = 0
+    hole_size: int = 0
+    gap_width: Optional[int] = None
+    overlap: Optional[int] = None
+
+
+@dataclass
+class PivotTableField:
+    compact: bool = False
+    data: str = ""
+    name: str = ""
+    outline: bool = False
+    show_all: bool = False
+    insert_blank_row: bool = False
+    subtotal: str = ""
+    default_subtotal: bool = False
+    num_fmt: int = 0
+
+
+@dataclass
+class PivotTableOptions:
+    data_range: str = ""
+    pivot_table_range: str = ""
+    name: str = ""
+    rows: Optional[List[PivotTableField]] = None
+    columns: Optional[List[PivotTableField]] = None
+    data: Optional[List[PivotTableField]] = None
+    filter: Optional[List[PivotTableField]] = None
+    row_grand_totals: bool = False
+    col_grand_totals: bool = False
+    show_drill: bool = False
+    use_auto_formatting: bool = False
+    page_over_then_down: bool = False
+    merge_item: bool = False
+    classic_layout: bool = False
+    compact_data: bool = False
+    show_error: bool = False
+    show_row_headers: bool = False
+    show_col_headers: bool = False
+    show_row_stripes: bool = False
+    show_col_stripes: bool = False
+    show_last_column: bool = False
+    field_print_titles: bool = False
+    item_print_titles: bool = False
+    pivot_table_style_name: str = ""
+
+
+@dataclass
+class ShapeLine:
+    color: str = ""
+    width: Optional[int] = None
+
+
+@dataclass
+class Shape:
+    cell: str = ""
+    type: str = ""
+    macro: str = ""
+    width: int = 0
+    height: int = 0
+    format: GraphicOptions = GraphicOptions
+    fill: Fill = Fill
+    line: ShapeLine = ShapeLine
+    paragraph: Optional[List[RichTextRun]] = None
+
+
+@dataclass
+class SheetPropsOptions:
+    code_name: Optional[str] = None
+    enable_format_conditions_calculation: Optional[bool] = None
+    published: Optional[bool] = None
+    auto_page_breaks: Optional[bool] = None
+    fit_to_page: Optional[bool] = None
+    tab_color_indexed: Optional[int] = None
+    tab_color_rgb: Optional[str] = None
+    tab_color_theme: Optional[int] = None
+    tab_color_tint: Optional[float] = None
+    outline_summary_below: Optional[bool] = None
+    outline_summary_right: Optional[bool] = None
+    base_col_width: Optional[int] = None
+    default_col_width: Optional[float] = None
+    default_row_height: Optional[float] = None
+    custom_height: Optional[bool] = None
+    zero_height: Optional[bool] = None
+    thick_top: Optional[bool] = None
+    thick_bottom: Optional[bool] = None
+
+
+@dataclass
+class SheetProtectionOptions:
+    algorithm_name: str = ""
+    auto_filter: bool = False
+    delete_columns: bool = False
+    delete_rows: bool = False
+    edit_objects: bool = False
+    edit_scenarios: bool = False
+    format_cells: bool = False
+    format_columns: bool = False
+    format_rows: bool = False
+    insert_columns: bool = False
+    insert_hyperlinks: bool = False
+    insert_rows: bool = False
+    password: str = ""
+    pivot_tables: bool = False
+    select_locked_cells: bool = False
+    select_unlocked_cells: bool = False
+    sort: bool = False
+
+
+@dataclass
+class SlicerOptions:
+    name: str = ""
+    cell: str = ""
+    table_sheet: str = ""
+    table_name: str = ""
+    caption: str = ""
+    macro: str = ""
+    width: int = 0
+    height: int = 0
+    display_header: Optional[bool] = None
+    item_desc: bool = False
+    format: GraphicOptions = GraphicOptions
+
+
+@dataclass
+class SparklineOptions:
+    location: Optional[List[str]] = None
+    range: Optional[List[str]] = None
+    max: int = 0
+    cust_max: int = 0
+    min: int = 0
+    cust_min: int = 0
+    type: str = ""
+    weight: int = 0
+    date_axis: bool = False
+    markers: bool = False
+    high: bool = False
+    low: bool = False
+    first: bool = False
+    last: bool = False
+    negative: bool = False
+    axis: bool = False
+    hidden: bool = False
+    reverse: bool = False
+    style: int = 0
+    series_color: str = ""
+    negative_color: str = ""
+    markers_color: str = ""
+    first_color: str = ""
+    last_color: str = ""
+    hight_color: str = ""
+    low_color: str = ""
+    empty_cells: str = ""
+
+
+@dataclass
+class Table:
+    range: str = ""
+    name: str = ""
+    style_name: str = ""
+    show_column_stripes: bool = False
+    show_first_column: bool = False
+    show_header_row: Optional[bool] = None
+    show_last_column: bool = False
+    show_row_stripes: Optional[bool] = None
+
+
+@dataclass
+class GetTablesResult:
+    tables: Optional[List[Table]] = None
+    err: str = ""
+
+
+@dataclass
+class ViewOptions:
+    default_grid_color: Optional[bool] = None
+    right_to_left: Optional[bool] = None
+    show_formulas: Optional[bool] = None
+    show_grid_lines: Optional[bool] = None
+    show_row_col_headers: Optional[bool] = None
+    show_ruler: Optional[bool] = None
+    show_zeros: Optional[bool] = None
+    top_left_cell: Optional[str] = None
+    view: Optional[str] = None
+    zoom_scale: Optional[float] = None
+
+
+@dataclass
+class DefinedName:
+    name: str = ""
+    comment: str = ""
+    refers_to: str = ""
+    scope: str = ""
+
+
+@dataclass
+class WorkbookPropsOptions:
+    date1904: Optional[bool] = None
+    filter_privacy: Optional[bool] = None
+    code_name: Optional[str] = None
+
+
+@dataclass
+class WorkbookProtectionOptions:
+    algorithm_name: str = ""
+    password: str = ""
+    lock_structure: bool = False
+    lock_windows: bool = False
