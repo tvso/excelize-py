@@ -768,5 +768,5 @@ struct GetTablesResult
 {
     int TablesLen;
     struct Table *Tables;
-    char *err;
+    char *Err;
 };

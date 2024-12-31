@@ -752,7 +752,7 @@ class _GetTablesResult(Structure):
     _fields_ = [
         ("TablesLen", c_int),
         ("Tables", POINTER(_Table)),
-        ("err", c_char_p),
+        ("Err", c_char_p),
     ]
 
 

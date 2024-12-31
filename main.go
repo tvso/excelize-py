@@ -1132,26 +1132,24 @@ func GetStyle(idx, styleID int) C.struct_GetStyleResult {
 //
 //export GetTables
 func GetTables(idx int, sheet *C.char) C.struct_GetTablesResult {
-	type GetTableResult struct {
-		Tables []excelize.Table
-	}
-	var result GetTableResult
 	f, ok := files.Load(idx)
 	if !ok {
-		return C.struct_GetTablesResult{err: C.CString(errFilePtr)}
+		return C.struct_GetTablesResult{Err: C.CString(errFilePtr)}
 	}
 	tables, err := f.(*excelize.File).GetTables(C.GoString(sheet))
 	if err != nil {
-		return C.struct_GetTablesResult{err: C.CString(err.Error())}
+		return C.struct_GetTablesResult{Err: C.CString(err.Error())}
 	}
-	result.Tables = tables
-	cVal, err := goValueToC(reflect.ValueOf(result), reflect.ValueOf(&C.struct_GetTablesResult{}))
-	if err != nil {
-		return C.struct_GetTablesResult{err: C.CString(err.Error())}
+	cArray := C.malloc(C.size_t(len(tables)) * C.size_t(unsafe.Sizeof(C.struct_Table{})))
+	cStructArray := (*[1 << 30]C.struct_Table)(cArray)[:len(tables):len(tables)]
+	for i, t := range tables {
+		cVal, err := goValueToC(reflect.ValueOf(t), reflect.ValueOf(&C.struct_Table{}))
+		if err != nil {
+			return C.struct_GetTablesResult{Err: C.CString(err.Error())}
+		}
+		cStructArray[i] = cVal.Elem().Interface().(C.struct_Table)
 	}
-	ret := cVal.Elem().Interface().(C.struct_GetTablesResult)
-	ret.err = C.CString(errNil)
-	return ret
+	return C.struct_GetTablesResult{TablesLen: C.int(len(tables)), Tables: (*C.struct_Table)(cArray), Err: C.CString(errNil)}
 }
 
 // MergeCell provides a function to merge cells by given range reference and
