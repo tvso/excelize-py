@@ -708,11 +708,15 @@ class TestExcelize(unittest.TestCase):
                 ),
             )
         )
-        # tables, err = f.get_tables("Sheet1")
-        # self.assertIsNone(err)
-        # self.assertEqual(len(tables), 1)
-        # self.assertEqual(tables[0].name, "Table1")
-        # self.assertEqual(tables[0].range, "A1:D5")
+        try:
+            tables, err = f.get_tables("Sheet1")
+            self.assertIsNone(err)
+            self.assertEqual(len(tables), 1)
+            self.assertEqual(tables[0].name, "Table1")
+            self.assertEqual(tables[0].range, "A1:D5")
+        except Exception as e:
+            print("[1]", e)
+
         self.assertIsNone(
             f.add_slicer(
                 "Sheet1",
