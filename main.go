@@ -12,7 +12,7 @@
 package main
 
 /*
-#include "types_c.h"
+#include <types_c.h>
 */
 import "C"
 
