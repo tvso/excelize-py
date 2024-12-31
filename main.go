@@ -12,7 +12,7 @@
 package main
 
 /*
-#include <types_c.h>
+#include "types_c.h"
 */
 import "C"
 
@@ -325,7 +325,7 @@ func goValueToC(goVal, cVal reflect.Value) (reflect.Value, error) {
 	for i := 0; i < goVal.Type().NumField(); i++ {
 		cField, _ := c.Type().FieldByName(goVal.Type().Field(i).Name)
 		field := goVal.Type().Field(i)
-		if !unicode.IsUpper(rune(field.Name[0])) {
+		if unicode.IsLower(rune(field.Name[0])) {
 			continue
 		}
 		if goBaseTypes[field.Type.Kind()] {
@@ -1127,7 +1127,7 @@ func GetStyle(idx, styleID int) C.struct_GetStyleResult {
 	return C.struct_GetStyleResult{style: cVal.Elem().Interface().(C.struct_Style), err: C.CString(errNil)}
 }
 
-// 1 provides the method to get all tables in a worksheet by given
+// GetTables provides the method to get all tables in a worksheet by given
 // worksheet name.
 //
 //export GetTables
