@@ -1368,7 +1368,10 @@ class File:
         """
         lib.GetTables.restype = types_go._GetTablesResult
         res = lib.GetTables(self.file_index, sheet.encode(ENCODE))
-        tables = c_value_to_py(res, GetTablesResult()).tables
+        tables = []
+        tbls = c_value_to_py(res, GetTablesResult()).tables
+        if tbls is not None:
+            tables = tbls
         err = res.err.decode(ENCODE)
         return tables, None if err == "" else Exception(err)
 
