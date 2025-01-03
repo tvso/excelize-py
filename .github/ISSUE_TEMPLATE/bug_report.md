@@ -1,84 +1,38 @@
+---
 name: Bug report
 about: Create a report to help us improve
-body:
-  - type: markdown
-    attributes:
-      value: |
-        If you are reporting a new issue, make sure that we do not have any duplicates
-        already open. You can ensure this by searching the issue list for this
-        repository. If there is a duplicate, please close your issue and add a comment
-        to the existing issue instead.
+title: ''
+labels: ''
+assignees: ''
 
-  - type: textarea
-    id: description
-    attributes:
-      label: Description
-      description: Briefly describe the problem you are having in a few paragraphs.
-    validations:
-      required: true
+---
 
-  - type: textarea
-    id: reproduction-steps
-    attributes:
-      label: Steps to reproduce the issue
-      description: Explain how to cause the issue in the provided reproduction.
-      placeholder: |
-        1.
-        2.
-        3.
-    validations:
-      required: true
+**Describe the bug**
+A clear and concise description of what the bug is.
 
-  - type: textarea
-    id: received
-    attributes:
-      label: Describe the results you received
-    validations:
-      required: true
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
-  - type: textarea
-    id: expected
-    attributes:
-      label: Describe the results you expected
-    validations:
-      required: true
+**Expected behavior**
+A clear and concise description of what you expected to happen.
 
-  - type: input
-    id: go-version
-    attributes:
-      label: Go version
-      description: |
-        Output of `go version`:
-      placeholder: e.g. 1.23.4
-    validations:
-      required: true
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
-  - type: input
-    id: excelize-version
-    attributes:
-      label: Excelize version or commit ID
-      description: |
-        Which version of Excelize are you using?
-      placeholder: e.g. 2.9.0
-    validations:
-      required: true
+**Desktop (please complete the following information):**
+ - OS: [e.g. iOS]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
 
-  - type: textarea
-    id: env
-    attributes:
-      label: Environment
-      description: Environment details (OS, Microsoft Excel&trade; version, physical, etc.)
-      render: shell
-    validations:
-      required: true
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Browser [e.g. stock browser, safari]
+ - Version [e.g. 22]
 
-  - type: checkboxes
-    id: checkboxes
-    attributes:
-      label: Validations
-      description: Before submitting the issue, please make sure you do the following
-      options:
-        - label: Check that there isn't already an issue that reports the same bug to avoid creating a duplicate.
-          required: true
-        - label: The provided reproduction is a minimal reproducible example of the bug.
-          required: true
+**Additional context**
+Add any other context about the problem here.
