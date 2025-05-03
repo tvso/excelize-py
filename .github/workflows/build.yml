@@ -64,10 +64,10 @@ jobs:
         name: codecov-umbrella
 
   build:
-    runs-on: [ubuntu-24.04, macos-latest]
-    needs: [test]
-    # if: github.event_name == 'release' && github.event.action == 'published'
-    if: github.event_name == 'push'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-latest]
 
     steps:
 
@@ -90,43 +90,31 @@ jobs:
           env GO111MODULE=on go vet ./...
           pip install coverage
 
-      - name: Build Shared Library for Windows and macOS
-        env:
-          CGO_ENABLED: 1
-        if: matrix.os == 'macos-latest'
+      - name: Set up Build Tools
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          brew tap messense/macos-cross-toolchains
-
-          # brew install FiloSottile/musl-cross/musl-cross i686-unknown-linux-gnu mingw-w64
-          brew install mingw-w64
-
-          wget https://github.com/mstorsjo/llvm-mingw/releases/download/20250114/llvm-mingw-20250114-ucrt-macos-universal.tar.xz
-          tar -xzf llvm-mingw-20250114-ucrt-macos-universal.tar.xz
-          export PATH="$(pwd)/llvm-mingw-20250114-ucrt-macos-universal/bin:$PATH"
-          
-          # CC=i686-linux-gnu-gcc GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
-          # CC=x86_64-linux-musl-gcc GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.linux.so main.go
-          # CC=aarch64-linux-musl-gcc GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.linux.so main.go
-          
-          CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.windows.dll main.go
-          CC=i686-w64-mingw32-gcc GOOS=windows GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.windows.dll main.go
-          CC=aarch64-w64-mingw32-gcc GOOS=windows GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.windows.dll main.go
-          CC=gcc GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.darwin.dylib main.go
-          CC=gcc GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.darwin.dylib main.go
-          rm -f libexcelize.*.h
-
-      - name: Build Shared Library for Linux
-        env:
-          CGO_ENABLED: 1
-        if: matrix.os == 'ubuntu-24.04'
-        run: |
-          GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
-          GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.linux.so main.go
-          GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.linux.so main.go          
-          rm -f libexcelize.*.h
-          echo "List artifacts:"
-          ls
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
+            GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.linux.so main.go
+            GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.linux.so main.go          
+            rm -f libexcelize.*.h
+            echo "Linux artifacts:"
+            ls
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            brew tap messense/macos-cross-toolchains
+            brew install mingw-w64
+            wget https://github.com/mstorsjo/llvm-mingw/releases/download/20250114/llvm-mingw-20250114-ucrt-macos-universal.tar.xz
+            tar -xzf llvm-mingw-20250114-ucrt-macos-universal.tar.xz
+            export PATH="$(pwd)/llvm-mingw-20250114-ucrt-macos-universal/bin:$PATH"            
+            CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.windows.dll main.go
+            CC=i686-w64-mingw32-gcc GOOS=windows GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.windows.dll main.go
+            CC=aarch64-w64-mingw32-gcc GOOS=windows GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.windows.dll main.go
+            CC=gcc GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.darwin.dylib main.go
+            CC=gcc GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.darwin.dylib main.go
+            rm -f libexcelize.*.h
+            echo "macOS and Windows artifacts:"
+            ls
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
