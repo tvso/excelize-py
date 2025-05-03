@@ -97,7 +97,10 @@ jobs:
           CGO_ENABLED: 1
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
+            sudo dpkg --add-architecture i386
+            sudo apt update
+            sudo apt install -y gcc-multilib g++-multilib libc6-dev-i386
+            CC="gcc -m32" GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
             GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.linux.so main.go
             GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.linux.so main.go          
             rm -f libexcelize.*.h
