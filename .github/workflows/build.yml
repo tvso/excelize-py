@@ -103,8 +103,6 @@ jobs:
             CC="gcc -m32" GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
             GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.linux.so main.go
             rm -f libexcelize.*.h
-            echo "Linux artifacts:"
-            ls
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             brew tap messense/macos-cross-toolchains
@@ -119,16 +117,23 @@ jobs:
             CC=gcc GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.arm64.darwin.dylib main.go
             CC=gcc GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.amd64.darwin.dylib main.go
             rm -f libexcelize.*.h
-            echo "macOS and Windows artifacts:"
-            ls
           fi
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Linux Artifacts
+        if: runner.os == 'ubuntu-24.04'
+        uses: actions/upload-artifact@v4
         with:
-          name: libexcelize
+          name: linux-artifacts
           path: |
             libexcelize.386.linux.so
             libexcelize.amd64.linux.so
+
+      - name: Upload Darwin Artifacts
+        if: runner.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: darwin-artifacts
+          path: |
             libexcelize.arm64.linux.so
             libexcelize.amd64.windows.dll
             libexcelize.386.windows.dll
