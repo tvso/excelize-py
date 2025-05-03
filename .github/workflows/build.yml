@@ -65,6 +65,8 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
+    needs: [test]
+    if: github.event_name == 'push'
     strategy:
       matrix:
         os: [ubuntu-24.04, macos-latest]
@@ -90,7 +92,9 @@ jobs:
           env GO111MODULE=on go vet ./...
           pip install coverage
 
-      - name: Set up Build Tools
+      - name: Build Shared Library
+        env:
+          CGO_ENABLED: 1
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             GOOS=linux GOARCH=386 go build -ldflags "-s -w" -buildmode=c-shared -o libexcelize.386.linux.so main.go
@@ -138,7 +142,6 @@ jobs:
     permissions:
       id-token: write
 
-    # if: github.event_name == 'release' && github.event.action == 'published'
     if: github.event_name == 'push'
     steps:
     - name: Install Python
@@ -159,6 +162,3 @@ jobs:
       run: |
         echo "Shared libraries:"
         ls
-
-    # - name: Publish package distributions to PyPI
-    #   uses: pypa/gh-action-pypi-publish@release/v1
