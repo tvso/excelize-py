@@ -66,7 +66,8 @@ jobs:
   build:
     runs-on: [ubuntu-24.04, macos-latest]
     needs: [test]
-    if: github.event_name == 'release' && github.event.action == 'published'
+    # if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'push'
 
     steps:
 
@@ -149,7 +150,8 @@ jobs:
     permissions:
       id-token: write
 
-    if: github.event_name == 'release' && github.event.action == 'published'
+    # if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'push'
     steps:
     - name: Install Python
       uses: actions/setup-python@v5
@@ -167,8 +169,8 @@ jobs:
 
     - name: Build Python Package
       run: |
-        pip install build setuptools wheel
-        python -m build
+        echo "Shared libraries:"
+        ls
 
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+    # - name: Publish package distributions to PyPI
+    #   uses: pypa/gh-action-pypi-publish@release/v1
